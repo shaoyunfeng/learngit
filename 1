@@ -1,0 +1,43 @@
+#include<iostream>
+#include<algorithm>
+#include<stdio.h>
+#include<string.h>
+using namespace std;
+const int MAX = 100010;
+int a[MAX],n,m;
+bool C(int d)
+{
+    int t = a[0],count = 1;
+    for(int i = 1;i < n;i ++)
+    {
+        if(a[i] - t >= d)
+        {
+            count ++;
+            t=a[i];
+            if(count >= m)
+                return true;
+        }
+    }
+    return false;
+}
+
+int main()
+{
+	cin>>n>>m;
+	for(int i=0;i<n;i++)
+	{
+		cin>>a[i];
+	}
+		sort(a,a+n);
+		 int x = 0,y = a[n-1] - a[0];
+		    while(x <= y)
+		    {
+		        int mid=(x+y)/2;
+		        if(C(mid))
+		            x=mid + 1;
+		        else
+		            y=mid - 1;
+		    }
+	cout<<x-1;
+}
+

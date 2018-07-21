@@ -1,0 +1,80 @@
+#include<cstdio>
+#include<iostream>
+#include<cstring>
+using namespace std;
+
+struct node
+{
+    int x;
+    int steps;
+    int i;
+};
+
+bool vis[100000]={false};
+char str[10];
+node queue[100000];
+
+void flip(int i,node a,node &b)
+{
+    int r=i/4,c=i%4;
+    b.x=a.x;
+    b.x=b.x^(0x1<<i);
+    if(r>0)
+        b.x=b.x^(0x1<<(i-4));
+    if(r<3)
+        b.x=b.x^(0x1<<(i+4));
+    if(c>0)
+        b.x=b.x^(0x1<<(i-1));
+    if(c<3)
+        b.x=b.x^(0x1<<(i+1));
+    b.i=i;
+    b.steps=a.steps+1;
+}
+void init()
+{
+    queue[0].x=0;
+    queue[0].steps=0;
+    queue[0].i=-1;
+    for(int i=0;i<4;i++)
+    {
+      cin>>str;
+        for(int j=0;j<4;j++)
+        {
+            if(str[j]=='b')
+                queue[0].x=(queue[0].x|(0x1<<i*4+j));
+        }
+    }
+}
+void bfs()
+{
+    int p=0,q=0;
+    while(!(queue[q].x==0||queue[q].x==0xffff))
+    {
+        for(int i=0;i<16;i++)
+        {
+            if(queue[p].i==i)
+                continue;
+            q++;
+            flip(i,queue[p],queue[q]);
+            if(vis[queue[q].x])
+                q--;
+            vis[queue[q].x]=true;
+            if(queue[q].x==0||queue[q].x==0xffff)
+                break;
+        }
+        if(p==q)
+        {
+            cout<<"Impossible";
+            break;
+        }
+        p++;
+    }
+    if(queue[q].x==0||queue[q].x==0xffff)
+        cout<<queue[q].steps;
+}
+int main()
+{
+    init();
+    bfs();
+    return 0;
+}

@@ -1,0 +1,55 @@
+#include<iostream>
+using namespace std;
+
+#define QSize 50
+
+int a[5][5];
+int dis[4][2]={{-1,0},{1,0},{0,-1},{0,1}};
+struct Node{
+	int x,y,pre;
+}queue[QSize];
+int front=0;
+int rear=0;
+int visit[5][5];
+void bfs(int beginX,int beginY,int endX,int endY){
+	queue[0].x=beginX,queue[0].y=beginY,queue[0].pre=-1;
+	rear=rear+1;
+	visit[beginX][beginY]=1;
+	while(front<rear){
+		for(int i=0;i<4;i++){
+			int newx=queue[front].x+dis[i][0];
+			int newy=queue[front].y+dis[i][1];
+			if(newx<0||newx>5||newy<0||newy>5||a[newx][newy]==1||visit[newx][newy]==1)
+				continue;
+			queue[rear].x=newx;
+			queue[rear].y=newy;
+			queue[rear].pre=front;
+			rear++;
+			visit[newx][newy]=1;
+			if(newx==endX&&newy==endY){
+				return;
+			}
+		}
+		front++;
+	}
+}
+
+void print(Node now){
+	if(now.pre==-1)
+		cout<<"("<<now.x<<", "<<now.y<<")"<<endl;
+	else{
+		print(queue[now.pre]);
+		cout<<"("<<now.x<<", "<<now.y<<")"<<endl;
+	}
+}
+
+int main(){
+   for(int i=0;i<5;i++){
+	   for(int j=0;j<5;j++){
+		    cin>>a[i][j];
+	   }
+   }
+   bfs(0,0,4,4);
+   print(queue[rear-1]);
+   return 0;
+}

@@ -1,0 +1,81 @@
+#include <iostream>
+#include<stdio.h>
+#include<stdlib.h>
+using namespace std;
+const int N=25;
+int n,h;
+int f[N],d[N],t[N];
+int ans;
+int each[N];
+int tans,teach[N];
+int th,tf[N];
+int main()
+{
+    int i,j;
+    while(cin>>n && n>0)
+    {
+        cin>>h;
+        for(i=0;i<n;i++)
+        cin>>f[i];
+        for(i=0;i<n;i++)
+        cin>>d[i];
+        for(i=0;i<n-1;i++)
+        cin>>t[i];
+
+        h*=12;
+        ans=-1;
+        for(i=0;i<n;i++)
+        {
+            th=h;
+            for(j=0;j<n;j++)
+            {
+                tf[j]=f[j];
+                teach[j]=0;
+            }
+            tans=0;
+            while(th>0)
+            {
+                int ind,max;
+                ind=0;max=tf[0];
+                for(j=1;j<=i;j++)
+                {
+                    if(tf[j]>max)
+                    {
+                        max=tf[j];ind=j;
+                    }
+                }
+                if(max==0)
+                {
+                    teach[0]+=th*5;
+                    break;
+                }
+                else
+                {
+                    teach[ind]+=5;
+                    tans+=tf[ind];
+                    if(tf[ind]>=d[ind])
+                      {
+                          tf[ind]-=d[ind];}
+                    else tf[ind]=0;
+                }
+                th--;
+            }
+            if(i!=n-1) h-=t[i];
+            if(tans>ans)
+            {
+                ans=tans;
+                for(j=0;j<n;j++)
+                each[j]=teach[j];
+            }
+        }
+        cout<<each[0];
+        for(i=1;i<n;i++)
+        {
+            cout<<", "<<each[i];
+        }
+        cout<<endl;
+        cout<<"Number of fish expected: "<<ans<<endl;
+        cout<<endl;
+    }
+    return 0;
+}
