@@ -1,0 +1,241 @@
+1怎么在树莓派上装新的应用
+使用sudo apt-get +软件名 安装软件包
+
+2怎么配置无线
+首先把自动开启的热点关闭。
+打开配置的文件vi /etc/wpa_supplicant/wpa_supplicant.conf
+加入无线网名称和密码
+network={
+  ssid="anxiang"
+  psk="12345678"
+}
+reboot重启树莓派
+用网线连接到笔记本使用ifconfig 查看树莓派新ip
+可以在路由器的设置网页看有没有连入wifi
+使用putty，输入ip后登陆
+
+3不用遥控器操作小车？无线网络链接操作（通过tcp协议发送到车上）
+新建文件
+#coding:utf-8
+from flask import Flask,render_template
+import RPi.GPIO as GPIO
+import time
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+SensorRight = 16
+SensorLeft  = 12
+
+PWMA = 18
+AIN1   =  22
+AIN2   =  27
+
+PWMB = 23
+BIN1   = 25
+BIN2  =  24
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(SensorRight,GPIO.IN)
+GPIO.setup(SensorLeft,GPIO.IN)
+GPIO.setup(5,GPIO.OUT)
+GPIO.setup(AIN2,GPIO.OUT)
+GPIO.setup(AIN1,GPIO.OUT)
+GPIO.setup(PWMA,GPIO.OUT)
+
+GPIO.setup(BIN1,GPIO.OUT)
+GPIO.setup(BIN2,GPIO.OUT)
+GPIO.setup(PWMB,GPIO.OUT)
+L_Motor= GPIO.PWM(PWMA,100)
+L_Motor.start(0)
+R_Motor = GPIO.PWM(PWMB,100)
+R_Motor.start(0)
+
+app=Flask(__name__)
+
+@app.route("/")
+def main():
+        return render_template("main.html")
+
+@app.route("/on")
+def on():
+        L_Motor.ChangeDutyCycle(50)
+        GPIO.output(AIN2,False)#AIN2
+        GPIO.output(AIN1,True) #AIN1
+
+        R_Motor.ChangeDutyCycle(50)
+        GPIO.output(BIN2,False)#BIN2
+        GPIO.output(BIN1,True) #BIN1
+        time.sleep(0)
+        return render_template("main.html")
+
+@app.route("/off")
+def off():
+        L_Motor.ChangeDutyCycle(0)
+        GPIO.output(AIN2,False)#AIN2
+        GPIO.output(AIN1,False) #AIN1
+
+        R_Motor.ChangeDutyCycle(0)
+        GPIO.output(BIN2,False)#BIN2
+        GPIO.output(BIN1,False) #BIN1
+        time.sleep(0.3)
+        return render_template("main.html")
+
+@app.route("/back")
+def back():
+        L_Motor.ChangeDutyCycle(50)
+        GPIO.output(AIN2,True)#AIN2
+        GPIO.output(AIN1,False) #AIN1
+
+        R_Motor.ChangeDutyCycle(50)
+        GPIO.output(BIN2,True)#BIN2
+        GPIO.output(BIN1,False) #BIN1
+        time.sleep(0)
+        return render_template("main.html")
+		
+@app.route("/left")
+def left():
+        L_Motor.ChangeDutyCycle(50)
+        GPIO.output(AIN2,True)#AIN2
+        GPIO.output(AIN1,False) #AIN1
+
+        R_Motor.ChangeDutyCycle(50)
+        GPIO.output(BIN2,False)#BIN2
+        GPIO.output(BIN1,True) #BIN1
+        time.sleep(0)
+        return render_template("main.html")
+	
+@app.route("/right")
+def right():
+        L_Motor.ChangeDutyCycle(50)
+        GPIO.output(AIN2,False)#AIN2
+        GPIO.output(AIN1,True) #AIN1
+
+        R_Motor.ChangeDutyCycle(50)
+        GPIO.output(BIN2,True)#BIN2
+        GPIO.output(BIN1,False) #BIN1
+        time.sleep(0)
+        return render_template("main.html")
+
+if __name__ == "__main__":
+        app.run(host='0.0.0.0', port=8888, debug=True)
+在新建文件的同级目录下新建目录tempaltes在templates中建立main.html
+<!Document html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <style>
+      a {
+        width:100%
+      }
+  </style>
+  <head>
+      <title>LED</title>
+  </head>
+  <body>
+      <div class="container-fluid">
+        <div class="row"> 
+          <a href="/on" class="btn btn-success btn-lg" role="butoon">on</a>
+        </div>
+        </br>   
+        <div class="row">
+          <a href="/off" class="btn btn btn-info btn-lg" role="button">off</a>
+        </div>
+        </br>
+		<div class="row">
+          <a href="/back" class="btn btn btn-info btn-lg" role="button">back</a>
+        </div>
+        </br>
+		<div class="row">
+          <a href="/left" class="btn btn btn-info btn-lg" role="button">left</a>
+        </div>
+        </br>
+        <div class="row">
+          <a href="/right" class="btn btn-danger btn-lg" role="button">right</a>
+        </div>
+      </div>
+      <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+      <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  </body>
+运行第一个文件，打开网页输入192.168.1.1:8888  后可通过网页控制小车行动		
+
+4怎么看电源还剩多少
+有电压表可以直接看
+
+5上下板子通过什么连接在一起
+上下指针对应吻合
+
+6怎么把板子上的硬件信息找到
+查看cpu的信息cat /proc/cpuinfo
+查看内存 free -m
+查看u盘等外设 sudo fdisk -l
+
+7什么叫tftp
+TCP/IP协议族中的一个用来在客户机与服务器之间进行简单文件传输的协议，端口号为69。
+TFTP是一个传输文件的简单协议，它不具备通常的FTP的许多功能，它只能从文件服务器上获得或写入文件，不能列出目录，
+不进行认证，它传输8位数据。传输中有三种模式：netascii，这是8位的ASCII码形式，另一种是octet，这是8位源数据类型；
+最后一种mail已经不再支持，它将返回的数据直接返回给用户而不是保存为文件。
+
+8gpio是什么
+总线扩展器，系统需要采用远端串行通信或控制时，GPIO产品能够提供额外的控制
+每个GPIO端口可通过软件分别配置成输入或输出
+低功耗，小封装，低成本，布线简单。
+
+9用c语言写代码
+控制led灯的闪烁
+#include <stdio.h>
+#include <wiringPi.h>
+char LED=25; 
+int main(void)
+{
+if(wiringPiSetup() < 0) return -1;
+pinMode (LED,OUTPUT);
+while(1)
+        {
+        digitalWrite(LED,1);  
+        delay(400);               
+        digitalWrite(LED,0);   
+        delay(400);               
+        }
+}
+用按键控制led灯
+#include <stdio.h>
+#include<wiringPi.h>
+using namespace std;
+void ButtonPressed(void);
+void setup();
+
+const int LEDPin = 11;
+const int ButtonPin = 1;
+
+int main()
+{
+ setup();
+ if(0>wiringPiISR(ButtonPin,INT_EDGE_FALLING,ButtonPressed))
+ {
+ cerr<<"interrupt function register failure"<<endl;
+ exit(-1);
+ }
+ while(1)
+ ;
+ return 0;
+}
+void setup()
+{
+ if(-1==wiringPiSetup())
+ {
+ cerr<<"wiringPi setup error"<<endl;
+ exit(-1);
+ }
+
+ pinMode(LEDPin,OUTPUT); 
+ digitalWrite(LEDPin,LOW);
+ pinMode(ButtonPin,INPUT); 
+ pullUpDnControl(ButtonPin,PUD_UP); 
+}
+void ButtonPressed(void)
+{
+ digitalWrite(LEDPin, (HIGH==digitalRead(LEDPin))?LOW:HIGH );
+}
